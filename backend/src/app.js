@@ -15,6 +15,7 @@ import attachmentRoutes from './modules/attachments/attachment.routes.js';
 import actionTakenReportRoutes from './modules/action-taken-reports/action-taken-report.routes.js';
 import grievanceRemarkRoutes from './modules/grievance-remarks/grievance-remark.routes.js';
 import healthRoutes from './modules/health/health.routes.js';
+import requireDatabase from './middlewares/require-database.js';
 
 const app = express();
 
@@ -30,6 +31,9 @@ app.use(cookieParser());
 
 app.use('/health', healthRoutes);
 
+app.use('/api/health', healthRoutes);
+app.use('/api', requireDatabase);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/grievances', grievanceRoutes);
 app.use('/api/departments', departmentRoutes);
@@ -41,7 +45,6 @@ app.use('/api/department-assignments', departmentAssignmentRoutes);
 app.use('/api/attachments', attachmentRoutes);
 app.use('/api/action-taken-reports', actionTakenReportRoutes);
 app.use('/api/grievance-remarks', grievanceRemarkRoutes);
-app.use('/api/health', healthRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
