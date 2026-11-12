@@ -4,7 +4,7 @@ import { useEffect, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { getCurrentUser } from '../features/auth/auth.service'
 import { sessionResolved, setAuthenticated, signOut } from '../features/auth/auth.slice'
-import { getApiErrorMessage } from '../lib/http'
+import { getApiErrorMessage } from '../lib/axios'
 import { useAppDispatch } from './store'
 import { store } from './store'
 

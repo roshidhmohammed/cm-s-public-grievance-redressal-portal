@@ -8,12 +8,8 @@ import { getRoleHomePath, login } from '../../auth/auth.service'
 import { useAppDispatch } from '../../../app/store'
 import { Button } from '../../../shared/components/Button'
 import { Input } from '../../../shared/components/Input'
-import { getApiErrorMessage } from '../../../lib/http'
-
-const loginSchema = z.object({
-  email: z.string().email('Enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-})
+import { getApiErrorMessage } from '../../../lib/axios'
+import { loginSchema } from '../../citizen/schemas/loginSchema'
 
 type LoginFormValues = z.infer<typeof loginSchema>
 

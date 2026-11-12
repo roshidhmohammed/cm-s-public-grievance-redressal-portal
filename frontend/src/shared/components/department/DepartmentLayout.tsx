@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { signOut } from '../../../features/auth/auth.slice'
 import { useAppDispatch } from '../../../app/store'
 import { Button } from '../Button'
 import { logout } from '../../../features/auth/auth.service'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 import { toast } from 'sonner'
+import type { LayoutProps } from '../../types'
 
 const navItems = [
   { label: 'Dashboard', to: '/department/dashboard' },
@@ -13,7 +13,7 @@ const navItems = [
   { label: 'Reports', to: '/department/reports' },
 ]
 
-export function DepartmentLayout({ children }: { children: ReactNode }) {
+export function DepartmentLayout({ children }: LayoutProps) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 

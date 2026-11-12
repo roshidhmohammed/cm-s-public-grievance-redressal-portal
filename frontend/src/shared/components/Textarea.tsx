@@ -1,9 +1,5 @@
-import { forwardRef, type TextareaHTMLAttributes } from 'react'
-
-type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
-  label?: string
-  error?: string
-}
+import { forwardRef } from 'react'
+import type { TextareaProps } from '../types'
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
   { label, error, className = '', ...props },

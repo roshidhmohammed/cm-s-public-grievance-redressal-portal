@@ -15,7 +15,7 @@ import {
 import { CmoLayout } from '../../../shared/components/cmo/CmoLayout'
 import { getCmoDashboardStats } from '../services/cmo.service'
 import type { CmoDashboardStats } from '../types/cmo.types'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 
 const pieColors = ['#0f172a', '#10b981', '#f59e0b', '#64748b', '#e2e8f0']
 const emptyStats: CmoDashboardStats = {

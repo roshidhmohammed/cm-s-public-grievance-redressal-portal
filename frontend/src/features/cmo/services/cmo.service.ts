@@ -1,4 +1,4 @@
-import { api } from '../../../lib/http'
+import { api } from '../../../lib/axios'
 import type { CmoDashboardStats } from '../types/cmo.types'
 
 export async function getCmoDashboardStats(): Promise<CmoDashboardStats> {

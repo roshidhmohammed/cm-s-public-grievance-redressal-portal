@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { signOut } from '../../../features/auth/auth.slice'
 import { useAppDispatch } from '../../../app/store'
 import { Button } from '../Button'
 import { logout } from '../../../features/auth/auth.service'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 import { toast } from 'sonner'
+import type { LayoutProps } from '../../types'
 
 const navItems = [
   { label: 'Dashboard', to: '/cmo/dashboard' },
@@ -14,7 +14,7 @@ const navItems = [
   { label: 'Administration', to: '/cmo/administration' },
 ]
 
-export function CmoLayout({ children }: { children: ReactNode }) {
+export function CmoLayout({ children }: LayoutProps) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 

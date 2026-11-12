@@ -1,40 +1,27 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
-import { z } from 'zod'
-import { Button } from '../../../shared/components/Button'
-import { Input } from '../../../shared/components/Input'
-import { Textarea } from '../../../shared/components/Textarea'
-import { CitizenLayout } from '../../../shared/components/citizen/CitizenLayout'
-import { submitGrievance } from '../../grievances/grievance.service'
-import { getApiErrorMessage } from '../../../lib/http'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-const grievanceSchema = z.object({
-  district: z.string().min(2, 'District is required'),
-  category: z.string().min(2, 'Category is required'),
-  subject: z.string().min(5, 'Subject must be at least 5 characters'),
-  description: z.string().min(20, 'Description must be at least 20 characters'),
-  supportingDocuments: z.any().optional(),
-})
-
-const districts = [
-  'Thiruvananthapuram', 'Kollam', 'Pathanamthitta', 'Alappuzha', 'Kottayam', 'Idukki',
-  'Ernakulam', 'Thrissur', 'Palakkad', 'Malappuram', 'Kozhikode', 'Wayanad', 'Kannur', 'Kasaragod',
-]
-const categories = ['Infrastructure', 'Health', 'Education', 'Public Services', 'Water & Sanitation', 'Transport', 'Other']
-
-type GrievanceFormValues = z.infer<typeof grievanceSchema>
+import { Button } from "../../../shared/components/Button";
+import { Input } from "../../../shared/components/Input";
+import { Textarea } from "../../../shared/components/Textarea";
+import { CitizenLayout } from "../../../shared/components/citizen/CitizenLayout";
+import { submitGrievance } from "../../grievances/grievance.service";
+import { getApiErrorMessage } from "../../../lib/axios";
+import type { GrievanceFormValues } from "../types/index.ts";
+import { grievanceSchema } from "../schemas/grievanceSchema.tsx";
+import { categories, districts } from "../../../shared/constants/index.ts";
 
 export default function CitizenSubmitGrievancePage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<GrievanceFormValues>({
     resolver: zodResolver(grievanceSchema),
-  })
+  });
 
   const onSubmit = async (values: GrievanceFormValues) => {
     try {
@@ -44,42 +31,82 @@ export default function CitizenSubmitGrievancePage() {
         subject: values.subject,
         description: values.description,
         attachments: values.supportingDocuments as FileList | undefined,
-      })
-      toast.success(`Grievance submitted successfully. Ref: ${newGrievance.referenceNumber}`)
-      navigate(`/citizen/track?reference=${encodeURIComponent(newGrievance.referenceNumber)}`)
+      });
+      toast.success(
+        `Grievance submitted successfully. Ref: ${newGrievance.referenceNumber}`,
+      );
+      navigate(
+        `/citizen/track?reference=${encodeURIComponent(newGrievance.referenceNumber)}`,
+      );
     } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Unable to submit the grievance.'))
+      toast.error(getApiErrorMessage(error, "Unable to submit the grievance."));
     }
-  }
+  };
 
   return (
     <CitizenLayout>
       <div className="mx-auto max-w-4xl px-4 py-8 md:px-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Citizen portal</p>
-        <h1 className="mt-2 text-3xl font-black text-slate-900">Submit grievance</h1>
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
+          Citizen portal
+        </p>
+        <h1 className="mt-2 text-3xl font-black text-slate-900">
+          Submit grievance
+        </h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"
+        >
           <div className="grid gap-5 md:grid-cols-2">
             <label className="block text-sm font-medium text-slate-700">
               District
-              <select defaultValue="" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5" {...register('district')}>
-                <option value="" disabled>Select district</option>
-                {districts.map((district) => <option key={district}>{district}</option>)}
+              <select
+                defaultValue=""
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"
+                {...register("district")}
+              >
+                <option value="" disabled>
+                  Select district
+                </option>
+                {districts.map((district) => (
+                  <option key={district}>{district}</option>
+                ))}
               </select>
-              {errors.district?.message ? <span className="mt-1 block text-sm text-red-600">{errors.district.message}</span> : null}
+              {errors.district?.message ? (
+                <span className="mt-1 block text-sm text-red-600">
+                  {errors.district.message}
+                </span>
+              ) : null}
             </label>
             <label className="block text-sm font-medium text-slate-700">
               Category
-              <select defaultValue="" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5" {...register('category')}>
-                <option value="" disabled>Select category</option>
-                {categories.map((category) => <option key={category}>{category}</option>)}
+              <select
+                defaultValue=""
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"
+                {...register("category")}
+              >
+                <option value="" disabled>
+                  Select category
+                </option>
+                {categories.map((category) => (
+                  <option key={category}>{category}</option>
+                ))}
               </select>
-              {errors.category?.message ? <span className="mt-1 block text-sm text-red-600">{errors.category.message}</span> : null}
+              {errors.category?.message ? (
+                <span className="mt-1 block text-sm text-red-600">
+                  {errors.category.message}
+                </span>
+              ) : null}
             </label>
           </div>
 
           <div className="mt-5">
-            <Input label="Subject" placeholder="Brief subject of the grievance" error={errors.subject?.message} {...register('subject')} />
+            <Input
+              label="Subject"
+              placeholder="Brief subject of the grievance"
+              error={errors.subject?.message}
+              {...register("subject")}
+            />
           </div>
 
           <div className="mt-5">
@@ -88,7 +115,7 @@ export default function CitizenSubmitGrievancePage() {
               rows={6}
               placeholder="Describe the issue clearly, including locations, timelines, and any relevant information."
               error={errors.description?.message}
-              {...register('description')}
+              {...register("description")}
             />
           </div>
 
@@ -100,18 +127,18 @@ export default function CitizenSubmitGrievancePage() {
                 multiple
                 accept="image/jpeg,image/png,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 className="w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm text-slate-600"
-                {...register('supportingDocuments')}
+                {...register("supportingDocuments")}
               />
             </label>
           </div>
 
           <div className="mt-6 flex justify-end">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Submitting...' : 'Submit grievance'}
+              {isSubmitting ? "Submitting..." : "Submit grievance"}
             </Button>
           </div>
         </form>
       </div>
     </CitizenLayout>
-  )
+  );
 }

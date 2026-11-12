@@ -7,7 +7,7 @@ import { EmptyState } from '../../../shared/components/EmptyState'
 import { CitizenLayout } from '../../../shared/components/citizen/CitizenLayout'
 import { searchGrievanceByReference } from '../../grievances/grievance.service'
 import type { Grievance } from '../../grievances/grievance.types'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 
 export default function CitizenTrackPage() {
   const [searchParams] = useSearchParams()

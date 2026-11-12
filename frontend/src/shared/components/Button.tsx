@@ -1,9 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
-
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'ghost'
-  children: ReactNode
-}
+import type { ButtonProps } from '../types'
 
 export function Button({ children, variant = 'primary', className = '', ...props }: ButtonProps) {
   const variants = {

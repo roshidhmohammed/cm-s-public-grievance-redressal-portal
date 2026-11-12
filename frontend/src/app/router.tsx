@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 
 const AccessDeniedPage = lazy(() => import('../pages/AccessDeniedPage'))
 const AboutPage = lazy(() => import('../pages/AboutPage'))
@@ -47,101 +47,32 @@ export function AppRouter() {
         <Route path="/cmo/login" element={<CmoLoginPage />} />
         <Route path="/department/login" element={<DepartmentLoginPage />} />
         <Route
-          path="/citizen/dashboard"
-          element={
-            <CitizenProtectedRoute>
-              <CitizenDashboardPage />
-            </CitizenProtectedRoute>
-          }
-        />
+          path="/citizen"
+          element={<CitizenProtectedRoute><Outlet /></CitizenProtectedRoute>}
+        >
+          <Route path="dashboard" element={<CitizenDashboardPage />} />
+          <Route path="submit" element={<CitizenSubmitGrievancePage />} />
+          <Route path="track" element={<CitizenTrackPage />} />
+          <Route path="feedback" element={<CitizenFeedbackPage />} />
+        </Route>
         <Route
-          path="/citizen/submit"
-          element={
-            <CitizenProtectedRoute>
-              <CitizenSubmitGrievancePage />
-            </CitizenProtectedRoute>
-          }
-        />
+          path="/cmo"
+          element={<CmoProtectedRoute><Outlet /></CmoProtectedRoute>}
+        >
+          <Route path="dashboard" element={<CmoDashboardPage />} />
+          <Route path="grievances" element={<CmoGrievancesPage />} />
+          <Route path="grievances/:reference" element={<CmoGrievanceDetailPage />} />
+          <Route path="administration" element={<CmoAdministrationPage />} />
+          <Route path="departments" element={<CmoDepartmentsPage />} />
+        </Route>
         <Route
-          path="/citizen/track"
-          element={
-            <CitizenProtectedRoute>
-              <CitizenTrackPage />
-            </CitizenProtectedRoute>
-          }
-        />
-        <Route
-          path="/citizen/feedback"
-          element={
-            <CitizenProtectedRoute>
-              <CitizenFeedbackPage />
-            </CitizenProtectedRoute>
-          }
-        />
-        <Route
-          path="/cmo/dashboard"
-          element={
-            <CmoProtectedRoute>
-              <CmoDashboardPage />
-            </CmoProtectedRoute>
-          }
-        />
-        <Route
-          path="/cmo/grievances"
-          element={
-            <CmoProtectedRoute>
-              <CmoGrievancesPage />
-            </CmoProtectedRoute>
-          }
-        />
-        <Route
-          path="/cmo/administration"
-          element={
-            <CmoProtectedRoute>
-              <CmoAdministrationPage />
-            </CmoProtectedRoute>
-          }
-        />
-        <Route
-          path="/cmo/departments"
-          element={
-            <CmoProtectedRoute>
-              <CmoDepartmentsPage />
-            </CmoProtectedRoute>
-          }
-        />
-        <Route
-          path="/cmo/grievances/:reference"
-          element={
-            <CmoProtectedRoute>
-              <CmoGrievanceDetailPage />
-            </CmoProtectedRoute>
-          }
-        />
-        <Route
-          path="/department/dashboard"
-          element={
-            <DepartmentProtectedRoute>
-              <DepartmentDashboardPage />
-            </DepartmentProtectedRoute>
-          }
-        />
-        <Route
-          path="/department/grievances"
-          element={
-            <DepartmentProtectedRoute>
-              <DepartmentGrievancesPage />
-            </DepartmentProtectedRoute>
-          }
-        />
-        <Route
-          path="/department/grievances/:reference"
-          element={
-            <DepartmentProtectedRoute>
-              <DepartmentGrievanceDetailPage />
-            </DepartmentProtectedRoute>
-          }
-        />
+          path="/department"
+          element={<DepartmentProtectedRoute><Outlet /></DepartmentProtectedRoute>}
+        >
+          <Route path="dashboard" element={<DepartmentDashboardPage />} />
+          <Route path="grievances" element={<DepartmentGrievancesPage />} />
+          <Route path="grievances/:reference" element={<DepartmentGrievanceDetailPage />} />
+        </Route>
         <Route path="/access-denied" element={<AccessDeniedPage />} />
         <Route path="/not-found" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/not-found" replace />} />

@@ -1,44 +1,38 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { AuthUser, UserRole } from './auth.types'
-
-type AuthState = {
-  isAuthenticated: boolean
-  isLoading: boolean
-  user: AuthUser | null
-  role: UserRole | null
-}
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { AuthState, AuthUser, UserRole } from "./auth.types";
 
 const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: true,
   user: null,
   role: null,
-}
+};
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setAuthenticated: (state, action: PayloadAction<AuthUser>) => {
-      state.isAuthenticated = true
-      state.isLoading = false
-      state.user = action.payload
-      state.role = action.payload.role
+      state.isAuthenticated = true;
+      state.isLoading = false;
+      state.user = action.payload;
+      state.role = action.payload.role;
     },
     sessionResolved: (state) => {
-      state.isLoading = false
+      state.isLoading = false;
     },
     setRole: (state, action: PayloadAction<UserRole | null>) => {
-      state.role = action.payload
+      state.role = action.payload;
     },
     signOut: (state) => {
-      state.isAuthenticated = false
-      state.isLoading = false
-      state.user = null
-      state.role = null
+      state.isAuthenticated = false;
+      state.isLoading = false;
+      state.user = null;
+      state.role = null;
     },
   },
-})
+});
 
-export const { setAuthenticated, sessionResolved, setRole, signOut } = authSlice.actions
-export default authSlice.reducer
+export const { setAuthenticated, sessionResolved, setRole, signOut } =
+  authSlice.actions;
+export default authSlice.reducer;

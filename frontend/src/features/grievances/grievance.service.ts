@@ -1,4 +1,4 @@
-import { api } from '../../lib/http'
+import { api } from '../../lib/axios'
 import type { Grievance } from './grievance.types'
 
 type ApiResponse<T> = {

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { getDepartmentGrievances } from '../services/department.service'
 import type { Grievance } from '../../grievances/grievance.types'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 import { Button } from '../../../shared/components/Button'
 import { DepartmentLayout } from '../../../shared/components/department/DepartmentLayout'
 

@@ -1,14 +1,9 @@
-import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAppSelector } from '../../app/store'
-import type { UserRole } from '../../features/auth/auth.types'
 import { LoadingSpinner } from './LoadingSpinner'
+import type { ProtectedRouteProps, RoleProtectedRouteProps } from '../types'
 
-type ProtectedRouteProps = {
-  children: ReactNode
-}
-
-function RoleProtectedRoute({ children, requiredRole }: ProtectedRouteProps & { requiredRole: UserRole }) {
+function RoleProtectedRoute({ children, requiredRole }: RoleProtectedRouteProps) {
   const location = useLocation()
   const { isAuthenticated, isLoading, role } = useAppSelector((state) => state.auth)
 

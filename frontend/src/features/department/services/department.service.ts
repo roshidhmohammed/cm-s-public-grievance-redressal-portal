@@ -1,4 +1,4 @@
-import { api } from '../../../lib/http'
+import { api } from '../../../lib/axios'
 import type { Grievance } from '../../grievances/grievance.types'
 import type { DepartmentDashboardStats } from '../types/department.types'
 

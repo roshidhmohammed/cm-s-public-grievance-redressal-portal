@@ -1,27 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { createDepartmentOfficer } from '../../auth/auth.service'
 import { getDepartments } from '../services/department-api.service'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 import { Button } from '../../../shared/components/Button'
 import { Input } from '../../../shared/components/Input'
 import { toast } from 'sonner'
+import { officerSchema } from '../schemas/officerSchema'
+import type { OfficerFormValues } from '../types/department.types'
 
-const officerSchema = z.object({
-  fullName: z.string().trim().min(2, 'Full name must be at least 2 characters').max(120),
-  mobile: z.string().regex(/^\+?[0-9\s()-]{7,20}$/, 'Enter a valid mobile number'),
-  email: z.string().email('Enter a valid email address'),
-  password: z.string().min(12, 'Password must be at least 12 characters').max(128),
-  confirmPassword: z.string().min(12, 'Please confirm your password'),
-  department: z.string().optional(),
-}).refine((values) => values.password === values.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-})
 
-type OfficerFormValues = z.infer<typeof officerSchema>
+
+
 
 export function CreateDepartmentOfficerForm() {
   const queryClient = useQueryClient()

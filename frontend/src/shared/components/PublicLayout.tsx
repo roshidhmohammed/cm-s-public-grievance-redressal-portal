@@ -1,16 +1,8 @@
-import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import { navItems } from '../constants'
+import type { LayoutProps } from '../types'
 
-const navItems = [
-  { label: 'Home', to: '/' },
-  { label: 'About', to: '/about' },
-  { label: 'How It Works', to: '/how-it-works' },
-  { label: 'Departments', to: '/departments' },
-  { label: 'FAQ', to: '/faq' },
-  { label: 'Contact', to: '/contact' },
-]
-
-export function PublicLayout({ children }: { children: ReactNode }) {
+export function PublicLayout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="border-b border-slate-200 bg-white/95 backdrop-blur-sm">

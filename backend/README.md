@@ -1,63 +1,212 @@
-# Public Grievance Redressal Portal API
+# Public Grievance Redressal Portal — Backend
 
-Express 5, MongoDB/Mongoose, and native ES modules. Start with `npm run dev`; the API listens on port 8080 by default.
+## Project overview
 
-## Configuration and first CMO account
+The backend provides the API and data services for the CM Kerala Public Grievance Redressal Portal. It supports citizen submissions and tracking, CMO review and department assignment, officer action reports, grievance history and remarks, attachments, citizen feedback, contact enquiries, and role-specific dashboards.
 
-Copy `.env.example` to `.env`, configure MongoDB and a unique JWT secret of at least 32 characters, then configure `CMO_ADMIN_EMAIL` and a strong `CMO_ADMIN_PASSWORD` (at least 12 characters). Run `npm run seed` to create the initial CMO account and seed the sample departments. Public registration always creates citizen accounts; it cannot assign privileged roles.
+## Features
 
-After deploying the split grievance schema to a database that contains existing records, back up the database and run `npm run migrate:grievance-relations` once to move embedded histories, assignments, attachments, and action reports into their dedicated collections.
+- Citizen registration and authentication, with role-specific access for citizens, CMO administrators, and department officers.
+- Grievance submission, reference-number tracking, status history, filtering, prioritization, assignment, escalation, and resolution.
+- Department and officer administration, including assignment of officers to departments.
+- Department action-taken reports with optional supporting attachments.
+- Public and internal CMO remarks, and post-resolution citizen feedback.
+- Contact enquiry management and CMO/department dashboards.
+- Request validation, role-based authorization, readiness checks, and consistent JSON error responses.
+- File uploads for JPEG, PNG, WebP, PDF, and Word documents, up to 10 MB per file and five files per upload.
 
-Access tokens are HttpOnly cookies named `citizenAccessToken`, `cmoAccessToken`, and `departmentAccessToken` for citizens, CMO users, and department officers, respectively. Each portal keeps its own session cookie; signing in or out of one portal does not affect the others. Authenticated requests from the frontend include the `X-Portal-Role` header so the API selects the matching cookie. Requests must use credentials. Set `CLIENT_ORIGIN` in the backend deployment to the exact frontend origin; CORS uses this value. Cross-site production cookie settings default to `SameSite=None; Secure`. If set explicitly, use `COOKIE_SAME_SITE=none` and `COOKIE_SECURE=true`.
+## Tech stack
 
-Dashboard endpoints are private: sign in through the CMO frontend before requesting `/api/dashboard/cmo`. Deploy the frontend with `VITE_API_BASE_URL` set to the backend API origin (for example, `https://your-backend.vercel.app/api`). The browser must permit cross-site cookies for authentication to work.
+- **Runtime:** Node.js with native ES modules
+- **HTTP framework:** Express 5
+- **Database and ODM:** MongoDB and Mongoose 8
+- **Validation:** Zod
+- **Authentication:** JSON Web Tokens in role-specific HttpOnly cookies
+- **Password hashing:** bcrypt
+- **Uploads:** Multer
 
-On Vercel, configure `MONGODB_URI` in the project's environment variables for every deployment environment. Database-backed API routes establish or reuse a cached Mongoose connection before querying. Check `/api/health/ready` after deployment; if it reports `not_ready`, verify the URI, database credentials, and that your MongoDB provider permits connections from the Vercel deployment.
+## Backend architecture
 
-Attachments are limited to 10 MB per file and five files per submission/report and are only downloadable through an authenticated grievance attachment endpoint. Local development stores them under `uploads/`; Vercel uses its writable temporary directory, which is ephemeral and not shared across serverless instances. Configure `UPLOAD_DIRECTORY` only for a writable persistent disk. For reliable production uploads and downloads on Vercel, use persistent object storage rather than the temporary filesystem.
+The backend is organized around Express routes and feature modules. Requests pass through shared middleware for CORS, parsing, database availability, authentication, role authorization, and Zod validation before reaching a controller. Controllers coordinate module services and Mongoose models. Grievance data and related records are stored in MongoDB; uploaded files are stored on disk according to the configured upload directory.
 
-## API
+```mermaid
+flowchart TD
+    Client[Frontend or API client]
+    Express[Express application<br/>src/app.js]
+    Common[Shared middleware<br/>CORS, parsing, database connection]
+    Routes[Feature routes<br/>auth, grievances, departments,<br/>reports, attachments, dashboards]
+    Security[Authentication and role authorization]
+    Validation[Zod request validation]
+    Controllers[Feature controllers]
+    Services[Module services<br/>business rules and workflows]
+    Models[Mongoose models]
+    Mongo[(MongoDB collections)]
+    Upload[Multer upload middleware]
+    Storage[(Local uploads or configured storage)]
+    Response[JSON response or file download]
 
-All JSON responses use `{ "success": true, "data": ... }` on success.
+    Client -->|HTTP or multipart request| Express
+    Express --> Common
+    Common --> Routes
+    Routes --> Security
+    Security --> Validation
+    Validation --> Controllers
+    Controllers --> Services
+    Services --> Models
+    Models --> Mongo
+    Controllers --> Upload
+    Upload --> Storage
+    Mongo --> Services
+    Storage --> Controllers
+    Services --> Response
+    Controllers --> Response
+    Response --> Client
+```
 
-Request bodies, query filters, route parameters, and uploaded-file lists are validated with Zod before reaching controllers. Invalid input returns HTTP 400 with a `Validation failed` response and field-specific issues.
+Health checks are mounted separately so liveness can be checked without a database connection. Database-backed `/api` requests connect to MongoDB before route handling. Authentication uses signed tokens in role-specific HttpOnly cookies; authorization is enforced in the backend for each protected operation.
 
-| Method | Path | Access | Purpose |
-|---|---|---|---|
-| GET | `/health` or `/api/health` | Public | Liveness check |
-| GET | `/health/live` or `/api/health/live` | Public | Liveness check |
-| GET | `/health/ready` or `/api/health/ready` | Public | Readiness check, including MongoDB connection state |
-| POST | `/api/auth/register` | Public | Register a citizen |
-| POST | `/api/auth/login` | Public | Login and set access cookie |
-| POST | `/api/auth/logout` | Authenticated | Clear the selected portal's access cookie |
-| GET | `/api/auth/me` | Authenticated | Current account |
-| POST | `/api/auth/officers` | CMO | Create a department officer, optionally unassigned |
-| POST | `/api/departments/officers` | CMO | Create a department officer, optionally assign an active department |
-| GET | `/api/departments` | Public | Active departments |
-| GET | `/api/departments/:id/officers` | CMO | Officers eligible for assignment |
-| GET | `/api/departments/officers/unassigned` | CMO | List active officers not assigned to a department |
-| POST | `/api/departments` | CMO | Create a department and optionally assign an unassigned `officerId` |
-| PATCH | `/api/departments/:id/officers` | CMO | Assign an unassigned officer to a department |
-| POST | `/api/grievances` | Citizen | Submit multipart grievance and optional `attachments` |
-| GET | `/api/grievances/track/:referenceNumber` | Citizen owner | Track a grievance submitted from the signed-in account |
-| GET | `/api/grievances` | Authenticated | Own, department, or all grievances (role-scoped); supports status, district, category, priority, page, limit |
-| GET | `/api/grievances/:id` | Authorized | Grievance details |
-| POST | `/api/department-assignments/:grievanceId` | CMO | Assign department/officer, priority, and optional due date |
-| GET | `/api/department-assignments/:grievanceId` | CMO | View assignment history |
-| POST | `/api/grievances/:id/escalate` | CMO | Escalate an open grievance |
-| PATCH | `/api/grievances/:id/review` | CMO | Resolve an in-progress grievance after adding a public CMO remark |
-| POST | `/api/grievance-remarks/:grievanceId` | CMO | Add a public or internal remark to an in-progress grievance |
-| GET | `/api/grievance-history/:grievanceId` | Authorized | View status history and the `assignedBy` user |
-| POST | `/api/action-taken-reports/:grievanceId` | Department officer | Submit an action report and optional `attachments`; submission moves `UNDER_REVIEW` to `IN_PROGRESS` |
-| POST | `/api/citizen-feedback/:grievanceId` | Grievance owner | Submit one 1-5 rating after CMO resolution and a public CMO remark |
-| POST | `/api/attachments/:grievanceId` | Grievance owner/CMO/assigned department | Upload supplemental multipart `attachments` |
-| GET | `/api/attachments/:grievanceId/:filename` | Grievance owner/CMO/assigned department | Download a grievance or action-report attachment |
-| GET | `/api/dashboard/cmo` | CMO | Counts and district/department/status statistics |
-| GET | `/api/dashboard/department` | Department officer | Department workload counts |
-| POST | `/api/contact-enquiries` | Public | Save a contact enquiry |
-| GET | `/api/contact-enquiries` | CMO | List enquiries |
-| PATCH | `/api/contact-enquiries/:id` | CMO | Mark an enquiry reviewed or closed |
+## Database collections and relationships
 
-Grievance states follow `SUBMITTED` → `UNDER_REVIEW` → `IN_PROGRESS` → `RESOLVED` (or `REJECTED`). The CMO assigns only submitted grievances. Department officers submit an action-taken report to move an `UNDER_REVIEW` grievance to `IN_PROGRESS`; further reports may be submitted while it remains `IN_PROGRESS`. The CMO then adds a public remark and resolution to mark it `RESOLVED`. Citizens can track only grievances they own, and can submit feedback only after resolution and a public CMO remark.
+The backend uses MongoDB with Mongoose. Model references are stored as ObjectIds and are populated by the application when needed; they are not relational foreign keys, and MongoDB does not automatically enforce that referenced documents exist. The `auth.model.js` module re-exports `User` and does not create its own collection.
 
-Status history records contain the status and the user who assigned it (`assignedBy`). Department assignment records, uploaded attachment metadata, and action-taken reports are stored in their own module collections instead of embedded grievance arrays. Each action-taken report records its `departmentId`. Department officers can only access cases assigned to their department's current assignment.
+| Model | MongoDB collection | Relationship summary |
+|---|---|---|
+| `User` | `users` | May reference a `Department`; citizens submit grievances; CMO users assign grievances and create remarks; officers submit action reports. |
+| `Department` | `departments` | Has officers through `User.department`; handles grievance assignments and is referenced by action reports. |
+| `Grievance` | `grievances` | References its citizen and current assignment; has history, assignments, remarks, action reports, attachments, and optional citizen feedback. |
+| `DepartmentAssignment` | `departmentassignments` | References one grievance, one department, and optional officer and assigning user. A grievance's `assignment` points to the current assignment; earlier assignment records preserve assignment history. |
+| `GrievanceHistory` | `grievancehistories` | References a grievance and optional user associated with the status change. |
+| `GrievanceRemark` | `grievanceremarks` | References a grievance and the user who created the remark; visibility is public or internal. |
+| `ActionTakenReport` | `actiontakenreports` | References a grievance, department, submitting user, and zero or more attachment records. |
+| `Attachment` | `attachments` | References its grievance and uploader; action reports also reference their associated attachments. File contents are stored outside MongoDB, while this collection stores file metadata. |
+| `CitizenFeedback` | `citizenfeedbacks` | References a grievance and citizen; the unique grievance reference allows at most one feedback record per grievance. |
+| `ContactEnquiry` | `contactenquiries` | Standalone public enquiry record; it has no references to other collections. |
+
+### Entity-relationship diagram
+
+```mermaid
+erDiagram
+    USER ||--o{ GRIEVANCE : submits
+    DEPARTMENT o|--o{ USER : employs
+    GRIEVANCE ||--o{ DEPARTMENT_ASSIGNMENT : receives
+    DEPARTMENT ||--o{ DEPARTMENT_ASSIGNMENT : handles
+    USER o|--o{ DEPARTMENT_ASSIGNMENT : assigned_officer
+    USER o|--o{ DEPARTMENT_ASSIGNMENT : assigns
+    GRIEVANCE o|--o| DEPARTMENT_ASSIGNMENT : current_assignment
+    GRIEVANCE ||--o{ GRIEVANCE_HISTORY : records
+    USER o|--o{ GRIEVANCE_HISTORY : status_actor
+    GRIEVANCE ||--o{ GRIEVANCE_REMARK : has
+    USER ||--o{ GRIEVANCE_REMARK : authors
+    GRIEVANCE ||--o{ ACTION_TAKEN_REPORT : receives
+    DEPARTMENT ||--o{ ACTION_TAKEN_REPORT : reports_for
+    USER ||--o{ ACTION_TAKEN_REPORT : submits
+    GRIEVANCE ||--o{ ATTACHMENT : has
+    USER ||--o{ ATTACHMENT : uploads
+    ACTION_TAKEN_REPORT o|--o{ ATTACHMENT : references
+    GRIEVANCE ||--o| CITIZEN_FEEDBACK : receives
+    USER ||--o{ CITIZEN_FEEDBACK : submits
+```
+
+`||` denotes exactly one, `o|` zero or one, and `o{` zero or many. `CONTACT_ENQUIRY` is intentionally omitted from the relationship diagram because it is standalone. For field definitions, enum values, validation rules, and indexes, see [Database Design](../documentation/03_Database_Design.md).
+
+## Run locally
+
+### Prerequisites
+
+- Node.js and npm.
+- MongoDB running locally or a MongoDB URI reachable from your machine.
+
+### Install dependencies
+
+From the repository root, open a terminal and run:
+
+```powershell
+cd backend
+npm ci
+```
+
+### Configure environment variables
+
+Create `backend/.env` from the example file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Edit `.env` and set at least `MONGODB_URI` and a private `JWT_SECRET` of 32 or more characters. Configure the CMO administrator values before running the seed command.
+
+| Variable | Required | Description |
+|---|---|---|
+| `NODE_ENV` | No | Runtime mode; defaults to `development`. Use `production` for deployment. |
+| `PORT` | No | HTTP port; defaults to `8080`. Must be an integer from 1 to 65535. |
+| `MONGODB_URI` | Yes | MongoDB connection string, for example `mongodb://127.0.0.1:27017/grievance_portal`. |
+| `JWT_SECRET` | Yes | Private token-signing secret, minimum 32 characters. Use a securely generated value; never commit it. |
+| `JWT_EXPIRES_IN` | No | Access-token expiry accepted by jsonwebtoken; defaults to `1d`. |
+| `CLIENT_ORIGIN` | No | Frontend origin included in `.env.example`. The current `src/app.js` CORS configuration uses a fixed allowlist instead of this setting; see the CORS note below. |
+| `COOKIE_SAME_SITE` | No | Cookie policy: `strict`, `lax`, or `none`. Defaults to `lax` in development and `none` in production. |
+| `COOKIE_SECURE` | No | Set to `true` to mark cookies Secure. Automatically enabled in production. Required when `COOKIE_SAME_SITE=none`. |
+| `CMO_ADMIN_NAME` | For seeding | Name for the initial CMO administrator; defaults to `CMO Administrator`. |
+| `CMO_ADMIN_EMAIL` | For seeding | Email for the initial CMO administrator. |
+| `CMO_ADMIN_PASSWORD` | For seeding | Initial CMO password; required for seeding and must be at least 12 characters. |
+| `UPLOAD_DIRECTORY` | No | Optional override for the directory used to store uploads. Must point to writable storage; local default is `backend/uploads/`. |
+
+The checked-in `.env.example` contains development defaults and placeholders. Replace the JWT and administrator password placeholders with private values before use. Do not commit `.env` or production credentials.
+
+### Seed the first CMO administrator
+
+With MongoDB running and `CMO_ADMIN_EMAIL` and `CMO_ADMIN_PASSWORD` configured, run this once:
+
+```powershell
+npm run seed
+```
+
+The seed script creates the initial CMO account and sample departments. It does not reset an existing CMO account's password. Public registration creates citizen accounts only; additional department officers are created by a CMO administrator.
+
+### Start the API
+
+From `backend/`, run:
+
+```powershell
+npm run dev
+```
+
+The server connects to MongoDB and listens on `http://localhost:8080` by default. Check:
+
+- Liveness: `http://localhost:8080/health/live`
+- Database readiness: `http://localhost:8080/api/health/ready`
+
+Use `npm start` to run the server without the development watcher.
+
+## Tests
+
+Run the backend's Node.js test suite from `backend/`:
+
+```powershell
+npm test
+```
+
+## API documentation
+
+For the complete endpoint reference, including methods, access roles, parameters, and request/response examples, see the [API Documentation](../documentation/04_API_Documentation.md).
+
+## Authentication and CORS
+
+The API uses separate HttpOnly cookies for citizen, CMO, and department-officer sessions. Authenticated browser requests should include credentials and the `X-Portal-Role` header so the API selects the correct cookie. Production deployments on separate frontend/backend origins generally require HTTPS and `COOKIE_SAME_SITE=none` with `COOKIE_SECURE=true`; browser cookie restrictions also apply.
+
+**CORS configuration note:** `CLIENT_ORIGIN` is loaded by the backend configuration, but the current Express CORS middleware in `src/app.js` defines a hard-coded origin allowlist. If the frontend uses a different origin, update that allowlist in `src/app.js` and ensure credentialed requests are enabled. Setting `CLIENT_ORIGIN` alone does not currently change the allowlist.
+
+## Existing database migration
+
+If upgrading a database with legacy embedded grievance relations to the split collections used by the current models, back up the database first, then run the migration once:
+
+```powershell
+npm run migrate:grievance-relations
+```
+
+Do not run this migration against an existing production database without a verified backup and an appropriate maintenance plan.
+
+## Deployment notes
+
+- Set `MONGODB_URI`, `JWT_SECRET`, and initial administrator variables using the hosting provider's environment/secret settings.
+- Verify `/api/health/ready` after deployment.
+- On Vercel, the default upload directory is temporary and not shared or durable between serverless instances. Use persistent object storage for production attachments; `UPLOAD_DIRECTORY` is suitable only when the deployment provides a writable persistent disk.

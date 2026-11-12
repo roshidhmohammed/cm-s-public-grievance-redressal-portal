@@ -1,8 +1,8 @@
-import { Suspense } from 'react'
-import { Toaster } from 'sonner'
-import { AppRouter } from './app/router'
-import { ErrorBoundary } from './shared/components/ErrorBoundary'
-import { LoadingSpinner } from './shared/components/LoadingSpinner'
+import { Suspense } from "react";
+import { Toaster } from "sonner";
+import { AppRouter } from "./app/router";
+import { ErrorBoundary } from "./shared/components/ErrorBoundary";
+import { LoadingSpinner } from "./shared/components/LoadingSpinner";
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
         <Toaster richColors position="top-right" closeButton />
       </Suspense>
     </ErrorBoundary>
-  )
+  );
 }
 
-export default App
+export default App;

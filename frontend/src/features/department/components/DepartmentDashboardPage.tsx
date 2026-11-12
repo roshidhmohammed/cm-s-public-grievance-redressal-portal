@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { DepartmentLayout } from '../../../shared/components/department/DepartmentLayout'
 import { getDepartmentDashboardStats } from '../services/department.service'
 import type { DepartmentDashboardStats } from '../types/department.types'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 
 export default function DepartmentDashboardPage() {
   const [stats, setStats] = useState<DepartmentDashboardStats>({

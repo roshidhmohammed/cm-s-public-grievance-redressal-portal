@@ -1,21 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import { z } from 'zod'
 import { toast } from 'sonner'
 import { setAuthenticated } from '../../auth/auth.slice'
 import { getRoleHomePath, login } from '../../auth/auth.service'
 import { useAppDispatch } from '../../../app/store'
 import { Button } from '../../../shared/components/Button'
 import { Input } from '../../../shared/components/Input'
-import { getApiErrorMessage } from '../../../lib/http'
-
-const loginSchema = z.object({
-  email: z.string().email('Enter a valid department email'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-})
-
-type LoginFormValues = z.infer<typeof loginSchema>
+import { getApiErrorMessage } from '../../../lib/axios'
+import type { LoginFormValues } from '../../citizen/types'
+import { loginSchema } from '../../citizen/schemas/loginSchema'
 
 export default function DepartmentLoginPage() {
   const dispatch = useAppDispatch()

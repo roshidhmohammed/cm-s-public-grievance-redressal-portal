@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { getDepartments, type Department } from '../features/department/services/department-api.service'
-import { getApiErrorMessage } from '../lib/http'
+import { getDepartments } from '../features/department/services/department-api.service'
+import { getApiErrorMessage } from '../lib/axios'
 import { PublicLayout } from '../shared/components/PublicLayout'
+import type { Department } from '../features/department/types/department.types'
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([])

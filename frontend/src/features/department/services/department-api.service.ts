@@ -1,19 +1,7 @@
-import { api } from '../../../lib/http'
+import { api } from '../../../lib/axios'
+import type { Department, DepartmentOfficer } from '../types/department.types';
 
-export type Department = {
-  _id: string
-  id?: string
-  name: string
-  description: string
-  slug?: string
-}
 
-export type DepartmentOfficer = {
-  _id: string
-  fullName: string
-  email: string
-  mobile?: string
-}
 
 type ApiResponse<T> = { success: true; data: T }
 

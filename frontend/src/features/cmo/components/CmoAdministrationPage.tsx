@@ -6,7 +6,7 @@ import {
   updateContactEnquiry,
   type ContactEnquiry,
 } from '../../contact/contact.service'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 import { Button } from '../../../shared/components/Button'
 import { CmoLayout } from '../../../shared/components/cmo/CmoLayout'
 import { CreateDepartmentOfficerForm } from '../../department/components/CreateDepartmentOfficerForm'

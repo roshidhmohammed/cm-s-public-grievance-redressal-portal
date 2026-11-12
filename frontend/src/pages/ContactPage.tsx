@@ -7,7 +7,7 @@ import { Input } from '../shared/components/Input'
 import { PublicLayout } from '../shared/components/PublicLayout'
 import { Textarea } from '../shared/components/Textarea'
 import { submitContactEnquiry } from '../features/contact/contact.service'
-import { getApiErrorMessage } from '../lib/http'
+import { getApiErrorMessage } from '../lib/axios'
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),

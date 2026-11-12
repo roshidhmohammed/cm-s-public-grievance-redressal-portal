@@ -15,7 +15,7 @@ import {
 } from '../../grievances/grievance.service'
 import type { Grievance } from '../../grievances/grievance.types'
 import { getDepartments, getDepartmentOfficers, type Department, type DepartmentOfficer } from '../../department/services/department-api.service'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 import { Button } from '../../../shared/components/Button'
 import { CmoLayout } from '../../../shared/components/cmo/CmoLayout'
 

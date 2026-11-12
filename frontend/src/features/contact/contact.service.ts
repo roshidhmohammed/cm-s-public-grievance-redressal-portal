@@ -1,4 +1,4 @@
-import { api } from '../../lib/http'
+import { api } from '../../lib/axios'
 
 export async function submitContactEnquiry(input: {
   name: string

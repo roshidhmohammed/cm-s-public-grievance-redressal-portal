@@ -3,20 +3,10 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { getGrievances } from '../../grievances/grievance.service'
 import type { Grievance } from '../../grievances/grievance.types'
-import { getApiErrorMessage } from '../../../lib/http'
+import { getApiErrorMessage } from '../../../lib/axios'
 import { Button } from '../../../shared/components/Button'
 import { CmoLayout } from '../../../shared/components/cmo/CmoLayout'
-
-const districts = [
-  'Thiruvananthapuram', 'Kollam', 'Pathanamthitta', 'Alappuzha', 'Kottayam', 'Idukki',
-  'Ernakulam', 'Thrissur', 'Palakkad', 'Malappuram', 'Kozhikode', 'Wayanad', 'Kannur', 'Kasaragod',
-]
-const statuses = [
-  'SUBMITTED', 'UNDER_CMO_REVIEW', 'FORWARDED_TO_DEPARTMENT', 'UNDER_DEPARTMENT_REVIEW', 'UNDER_REVIEW', 'IN_PROGRESS',
-  'ACTION_REPORT_SUBMITTED', 'UNDER_CMO_RESOLUTION_REVIEW', 'RESOLVED', 'REJECTED',
-  'RETURNED_FOR_FURTHER_ACTION',
-]
-const categories = ['Infrastructure', 'Health', 'Education', 'Public Services', 'Water & Sanitation', 'Transport', 'Other']
+import { categories, districts, statuses } from '../../../shared/constants'
 
 export default function CmoGrievancesPage() {
   const [statusFilter, setStatusFilter] = useState('')
