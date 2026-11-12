@@ -10,7 +10,7 @@ After deploying the split grievance schema to a database that contains existing 
 
 Access tokens are HttpOnly cookies named `citizenAccessToken`, `cmoAccessToken`, and `departmentAccessToken` for citizens, CMO users, and department officers, respectively. Each portal keeps its own session cookie; signing in or out of one portal does not affect the others. Authenticated requests from the frontend include the `X-Portal-Role` header so the API selects the matching cookie. Requests must use credentials. For a cross-site production deployment, set `COOKIE_SAME_SITE=none` and `COOKIE_SECURE=true`, and set `CLIENT_ORIGIN` to the exact frontend origin. CORS is applied globally by the Express app to control browser access.
 
-Attachments are stored locally under `uploads/`, limited to 10 MB per file and five files per submission/report. They are only downloadable through an authenticated grievance attachment endpoint. Use persistent private storage for a multi-instance/production deployment.
+Attachments are limited to 10 MB per file and five files per submission/report and are only downloadable through an authenticated grievance attachment endpoint. Local development stores them under `uploads/`; Vercel uses its writable temporary directory, which is ephemeral and not shared across serverless instances. Configure `UPLOAD_DIRECTORY` only for a writable persistent disk. For reliable production uploads and downloads on Vercel, use persistent object storage rather than the temporary filesystem.
 
 ## API
 
