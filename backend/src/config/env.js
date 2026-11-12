@@ -24,7 +24,7 @@ export { port };
 export const mongoUri = process.env.MONGODB_URI;
 export const jwtSecret = process.env.JWT_SECRET;
 export const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '1d';
-export const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+export const clientOrigin = process.env.CLIENT_ORIGIN;
 export const cookieSameSite = process.env.COOKIE_SAME_SITE || 'lax';
 export const cookieSecure = process.env.COOKIE_SECURE === 'true' || nodeEnv === 'production';
 
