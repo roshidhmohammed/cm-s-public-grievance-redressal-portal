@@ -141,7 +141,7 @@ export async function submitActionReport(grievanceId: string, details: string, a
 
 export async function assignDepartment(
   grievanceId: string,
-  assignment: { department: string; officer?: string; priority: 'Low' | 'Medium' | 'High'; dueAt?: string },
+  assignment: { department: string; officer: string; priority: 'Low' | 'Medium' | 'High'; dueAt?: string },
 ) {
   const { data } = await api.post<ApiResponse<{ grievance: Grievance; assignment: unknown }>>(
     `/department-assignments/${encodeURIComponent(grievanceId)}`,

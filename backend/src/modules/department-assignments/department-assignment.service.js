@@ -13,23 +13,20 @@ export async function assignGrievanceToDepartment(grievance, input, user) {
   const department = await Department.findOne({ _id: input.department, isActive: true });
   if (!department) throw createHttpError(400, 'Select an active department.');
 
-  let officer = null;
-  if (input.officer) {
-    officer = await User.findOne({
-      _id: input.officer,
-      role: 'department_officer',
-      department: department._id,
-      isActive: true
-    });
-    if (!officer) throw createHttpError(400, 'The selected officer is not active in that department.');
-  }
+  const officer = await User.findOne({
+    _id: input.officer,
+    role: 'department_officer',
+    department: department._id,
+    isActive: true
+  });
+  if (!officer) throw createHttpError(400, 'The selected officer is not active in that department.');
 
   const dueAt = input.dueAt || grievance.dueAt || null;
 
   const assignment = await DepartmentAssignment.create({
     grievance: grievance._id,
     department: department._id,
-    officer: officer?._id || null,
+    officer: officer._id,
     assignedBy: user._id,
     dueAt
   });

@@ -134,10 +134,14 @@ export default function CmoGrievanceDetailPage() {
       toast.error('Select a department before assigning this grievance.')
       return
     }
+    if (!officerId) {
+      toast.error('Select an officer before assigning this grievance.')
+      return
+    }
     void runAction(
       () => assignDepartment(grievanceId, {
         department: departmentId,
-        officer: officerId || undefined,
+        officer: officerId,
         priority,
         dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
       }),
@@ -320,11 +324,14 @@ export default function CmoGrievanceDetailPage() {
                     </select>
                   </label>
                   <label className="block text-sm font-medium text-slate-700">
-                    Officer (optional)
+                    Officer
                     <select value={officerId} onChange={(event) => setOfficerId(event.target.value)} disabled={!departmentId} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 disabled:bg-slate-100">
-                      <option value="">Any available officer</option>
+                      <option value="">Select officer</option>
                       {officers.map((officer) => <option key={officer._id} value={officer._id}>{officer.fullName}</option>)}
                     </select>
+                    {departmentId && officers.length === 0 ? (
+                      <span className="mt-1 block text-sm text-amber-700">No active officers are assigned to this department.</span>
+                    ) : null}
                   </label>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block text-sm font-medium text-slate-700">
@@ -338,7 +345,7 @@ export default function CmoGrievanceDetailPage() {
                       <input type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5" />
                     </label>
                   </div>
-                  <Button type="button" onClick={handleAssignment} disabled={isSaving || !departmentId}>{isSaving ? 'Saving…' : 'Assign grievance'}</Button>
+                  <Button type="button" onClick={handleAssignment} disabled={isSaving || !departmentId || !officerId}>{isSaving ? 'Saving…' : 'Assign grievance'}</Button>
                 </div>
               </section>
             ) : null}

@@ -207,7 +207,7 @@ A grievance can be resolved only while `IN_PROGRESS` and after a public CMO rema
 
 | Method and path | Access | Parameters / request |
 |---|---|---|
-| `POST /api/department-assignments/:grievanceId` | CMO | Path: grievance ObjectId. JSON: `department` ObjectId, optional `officer` ObjectId, optional `priority` (`Low`, `Medium`, `High`; defaults to `Medium`), optional future `dueAt` date. |
+| `POST /api/department-assignments/:grievanceId` | CMO | Path: grievance ObjectId. JSON: `department` and `officer` ObjectIds (both required; officer must be active in the department), optional `priority` (`Low`, `Medium`, `High`; defaults to `Medium`), optional future `dueAt` date. |
 | `GET /api/department-assignments/:grievanceId` | CMO | Path: grievance ObjectId. Returns assignment history. |
 | `GET /api/grievance-history/:grievanceId` | Signed in; grievance access rules apply | Path: grievance ObjectId. |
 | `POST /api/grievance-remarks/:grievanceId` | CMO | Path: grievance ObjectId. JSON: `content` (3–2,000 chars), optional `visibility` (`public` or `internal`; defaults to `public`). |

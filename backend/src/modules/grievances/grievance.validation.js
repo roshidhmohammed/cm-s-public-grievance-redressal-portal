@@ -40,7 +40,7 @@ export const resolutionSchema = z.object({
 
 export const assignmentSchema = z.object({
   department: z.string().regex(/^[a-f\d]{24}$/i),
-  officer: z.string().regex(/^[a-f\d]{24}$/i).optional(),
+  officer: z.string().regex(/^[a-f\d]{24}$/i),
   priority: z.enum(['Low', 'Medium', 'High']).default('Medium'),
   dueAt: z.coerce.date().refine((date) => date > new Date(), 'Due date must be in the future.').optional()
 });
