@@ -25,7 +25,7 @@ export const mongoUri = process.env.MONGODB_URI;
 export const jwtSecret = process.env.JWT_SECRET;
 export const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '1d';
 export const clientOrigin = process.env.CLIENT_ORIGIN;
-export const cookieSameSite = process.env.COOKIE_SAME_SITE || 'lax';
+export const cookieSameSite = process.env.COOKIE_SAME_SITE || (nodeEnv === 'production' ? 'none' : 'lax');
 export const cookieSecure = process.env.COOKIE_SECURE === 'true' || nodeEnv === 'production';
 
 if (!['strict', 'lax', 'none'].includes(cookieSameSite)) {

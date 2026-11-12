@@ -20,7 +20,7 @@ import requireDatabase from './middlewares/require-database.js';
 const app = express();
 
 app.use(cors({
-  origin: "https://cm-s-public-grievance-redressal-por-ruby.vercel.app",
+  origin: ["https://cm-s-public-grievance-redressal-por-ruby.vercel.app", "http://localhost:5173"],
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-Portal-Role']
