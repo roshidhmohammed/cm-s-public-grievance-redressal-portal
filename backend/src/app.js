@@ -19,7 +19,7 @@ import healthRoutes from './modules/health/health.routes.js';
 const app = express();
 
 app.use(cors({
-  origin: clientOrigin,
+  origin: clientOrigin || "https://cm-s-public-grievance-redressal-por-ruby.vercel.app",
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'X-Requested-With', 'X-Portal-Role']
