@@ -1,0 +1,29 @@
+{
+  "name": "public-grievance-redressal-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Express and MongoDB backend for the public grievance redressal portal",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node src/scripts/seed.js",
+    "migrate:grievance-relations": "node src/scripts/migrate-grievance-relations.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.12.1",
+    "multer": "^2.0.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
