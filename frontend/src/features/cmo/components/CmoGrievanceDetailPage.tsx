@@ -5,7 +5,7 @@ import {
   addCmoRemark,
   assignDepartment,
   downloadAttachment,
-  escalateGrievance,
+  // escalateGrievance,
   getAssignmentHistory,
   getGrievanceById,
   getGrievanceHistory,
