@@ -27,6 +27,8 @@ export const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '1d';
 export const clientOrigin = process.env.CLIENT_ORIGIN;
 export const cookieSameSite = process.env.COOKIE_SAME_SITE || (nodeEnv === 'production' ? 'none' : 'lax');
 export const cookieSecure = process.env.COOKIE_SECURE === 'true' || nodeEnv === 'production';
+export const GOOGLE_GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY
+export const GEMINI_MODEL = process.env.GEMINI_MODEL
 
 if (!['strict', 'lax', 'none'].includes(cookieSameSite)) {
   throw new Error('COOKIE_SAME_SITE must be strict, lax, or none.');

@@ -11,6 +11,7 @@ The backend provides the API and data services for the CM Kerala Public Grievanc
 - Department and officer administration, including assignment of officers to departments.
 - Department action-taken reports with optional supporting attachments.
 - Public and internal CMO remarks, and post-resolution citizen feedback.
+- Gemini-powered grievance summaries and advisory recommendations, including possible duplicate candidates.
 - Contact enquiry management and CMO/department dashboards.
 - Request validation, role-based authorization, readiness checks, and consistent JSON error responses.
 - File uploads for JPEG, PNG, WebP, PDF, and Word documents, up to 10 MB per file and five files per upload.
@@ -80,6 +81,7 @@ The backend uses MongoDB with Mongoose. Model references are stored as ObjectIds
 | `ActionTakenReport` | `actiontakenreports` | References a grievance, department, submitting user, and zero or more attachment records. |
 | `Attachment` | `attachments` | References its grievance and uploader; action reports also reference their associated attachments. File contents are stored outside MongoDB, while this collection stores file metadata. |
 | `CitizenFeedback` | `citizenfeedbacks` | References a grievance and citizen; the unique grievance reference allows at most one feedback record per grievance. |
+| `AIGrievanceAnalysis` | `aigrievanceanalyses` | References the requesting user and suggested department; can optionally reference a grievance and reviewer. Stores generated analysis, a hash of the input description, duplicate candidates, and review state. |
 | `ContactEnquiry` | `contactenquiries` | Standalone public enquiry record; it has no references to other collections. |
 
 ### Entity-relationship diagram
@@ -105,6 +107,10 @@ erDiagram
     ACTION_TAKEN_REPORT o|--o{ ATTACHMENT : references
     GRIEVANCE ||--o| CITIZEN_FEEDBACK : receives
     USER ||--o{ CITIZEN_FEEDBACK : submits
+    USER ||--o{ AI_GRIEVANCE_ANALYSIS : requests
+    GRIEVANCE o|--o{ AI_GRIEVANCE_ANALYSIS : matches
+    DEPARTMENT ||--o{ AI_GRIEVANCE_ANALYSIS : suggested_for
+    USER o|--o{ AI_GRIEVANCE_ANALYSIS : reviews
 ```
 
 `||` denotes exactly one, `o|` zero or one, and `o{` zero or many. `CONTACT_ENQUIRY` is intentionally omitted from the relationship diagram because it is standalone. For field definitions, enum values, validation rules, and indexes, see [Database Design](../documentation/03_Database_Design.md).
@@ -149,6 +155,8 @@ Edit `.env` and set at least `MONGODB_URI` and a private `JWT_SECRET` of 32 or m
 | `CMO_ADMIN_EMAIL` | For seeding | Email for the initial CMO administrator. |
 | `CMO_ADMIN_PASSWORD` | For seeding | Initial CMO password; required for seeding and must be at least 12 characters. |
 | `UPLOAD_DIRECTORY` | No | Optional override for the directory used to store uploads. Must point to writable storage; local default is `backend/uploads/`. |
+| `GOOGLE_GEMINI_API_KEY` | For AI analysis | Google Gemini API key. AI analysis returns HTTP 503 when it is not configured. |
+| `GEMINI_MODEL` | No | Gemini model name; defaults to `gemini-2.0-flash`. |
 
 The checked-in `.env.example` contains development defaults and placeholders. Replace the JWT and administrator password placeholders with private values before use. Do not commit `.env` or production credentials.
 
@@ -188,6 +196,8 @@ npm test
 ## API documentation
 
 For the complete endpoint reference, including methods, access roles, parameters, and request/response examples, see the [API Documentation](../documentation/04_API_Documentation.md).
+
+For AI provider configuration and the citizen-to-CMO analysis workflow, see [AI Integration](../documentation/05_AI_Integration.md).
 
 ## Authentication and CORS
 

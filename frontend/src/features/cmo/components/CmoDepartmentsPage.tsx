@@ -7,8 +7,8 @@ import {
   getDepartmentOfficers,
   getDepartments,
   getUnassignedOfficers,
-  type Department,
 } from '../../department/services/department-api.service'
+import type { Department } from '../../department/types/department.types'
 import { getApiErrorMessage } from '../../../lib/axios'
 import { Button } from '../../../shared/components/Button'
 import { CmoLayout } from '../../../shared/components/cmo/CmoLayout'

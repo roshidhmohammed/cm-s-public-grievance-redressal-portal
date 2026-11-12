@@ -101,6 +101,7 @@ The backend uses HttpOnly cookies for role-specific access tokens. Passwords are
 | `action-taken-reports` | Department officer reports and their attachment references. |
 | `attachments` | Upload metadata, access checks, supplemental uploads, and authenticated downloads. |
 | `citizen-feedback` | One citizen rating and optional comment per resolved grievance. |
+| `ai-analysis` | Gemini decision-support analysis, duplicate candidates, and citizen review decisions; provides a CMO-only lookup for matching grievance analyses. |
 | `contact-enquiries` | Public enquiry creation and CMO review/closure. |
 | `dashboard` | CMO-wide and department-scoped grievance statistics. |
 | `health` | Liveness and MongoDB readiness endpoints. |
@@ -119,6 +120,7 @@ The core collections are:
 - `actiontakenreports` — reports submitted by department officers.
 - `attachments` — metadata and grievance associations for uploaded files.
 - `citizenfeedbacks` — post-resolution citizen feedback.
+- `aigrievanceanalyses` — AI-generated summaries and recommendations, matched to a grievance by citizen, district, and description hash when an explicit grievance reference is not present.
 - `contactenquiries` — standalone contact form submissions.
 
 Uploaded file contents are separate from MongoDB records. The `attachments` collection stores filenames and file metadata, while the actual files are stored in the configured upload directory. Local development uses `backend/uploads/` by default. Serverless temporary storage is not durable or shared between instances; production deployments requiring reliable attachments should use persistent object storage.
@@ -146,6 +148,10 @@ erDiagram
     ACTION_TAKEN_REPORT o|--o{ ATTACHMENT : references
     GRIEVANCE ||--o| CITIZEN_FEEDBACK : receives
     USER ||--o{ CITIZEN_FEEDBACK : submits
+    USER ||--o{ AI_GRIEVANCE_ANALYSIS : requests
+    GRIEVANCE o|--o{ AI_GRIEVANCE_ANALYSIS : matches
+    DEPARTMENT ||--o{ AI_GRIEVANCE_ANALYSIS : suggested_for
+    USER o|--o{ AI_GRIEVANCE_ANALYSIS : reviews
 ```
 
 `||` denotes exactly one, `o|` zero or one, and `o{` zero or many. `CONTACT_ENQUIRY` is standalone and has no modeled references to the other collections. See [Database Design](03_Database_Design.md) for field definitions, constraints, and indexes.

@@ -120,6 +120,33 @@ Attachment documents store file metadata and associate each file with a grievanc
 | `message` | String | Required, trimmed; max 5,000 characters |
 | `status` | String | One of `new`, `reviewed`, `closed`; defaults to `new` |
 
+### AIGrievanceAnalysis (`aigrievanceanalyses`)
+
+| Field | Type | Constraints / purpose |
+|---|---|---|
+| `grievanceId` | ObjectId → `Grievance` | Optional grievance association; indexed |
+| `requestedBy` | ObjectId → `User` | Required requesting citizen |
+| `district` | String | Required district used for analysis |
+| `inputTextHash` | String | Required SHA-256 hash of the trimmed description; used to match an analysis without storing a second copy of the complaint text |
+| `modelProvider` | String | Defaults to `GOOGLE_GEMINI` |
+| `modelName` | String | Required model name |
+| `summary` | String | Required generated summary |
+| `suggestedDepartmentId` | ObjectId → `Department` | Required suggested department |
+| `suggestedDepartmentCode` | String | Required department slug/code |
+| `suggestedCategory` | String | Required AI category |
+| `suggestedPriority` | String | Required; `LOW`, `MEDIUM`, or `HIGH` |
+| `confidence` | Number | Required; minimum 0, maximum 1 |
+| `reasoning` | String | Required explanation |
+| `duplicateConcern` | Boolean | Defaults to `false` |
+| `duplicateReason` | String | Defaults to empty string |
+| `duplicateCandidates` | Array of candidate references | Each may include a `Grievance` ObjectId, reference number, and similarity score |
+| `reviewDecision` | String | `PENDING`, `ACCEPTED`, `MODIFIED`, or `REJECTED`; defaults to `PENDING` |
+| `reviewedBy` | ObjectId → `User` | Optional reviewer |
+| `reviewedAt` | Date | Optional review time |
+| `reviewedValues` | Embedded object | Optional accepted/modified department, category, and priority |
+
+This collection stores generated decision support and its review state; it does not replace or update the canonical grievance record. It uses the standard `createdAt` and `updatedAt` timestamps.
+
 ## Relationships
 
 ```mermaid
@@ -143,6 +170,10 @@ erDiagram
     ACTION_TAKEN_REPORT o|--o{ ATTACHMENT : references
     GRIEVANCE ||--o| CITIZEN_FEEDBACK : receives
     USER ||--o{ CITIZEN_FEEDBACK : submits
+    USER ||--o{ AI_GRIEVANCE_ANALYSIS : requests
+    GRIEVANCE o|--o{ AI_GRIEVANCE_ANALYSIS : matches
+    DEPARTMENT ||--o{ AI_GRIEVANCE_ANALYSIS : suggested_for
+    USER o|--o{ AI_GRIEVANCE_ANALYSIS : reviews
 ```
 
 In this diagram, `||` means exactly one, `o|` means zero or one, and `o{` means zero or many. Relationships are based on the models' ObjectId references; MongoDB does not enforce referential integrity automatically.
@@ -155,5 +186,6 @@ In this diagram, `||` means exactly one, `o|` means zero or one, and `o{` means 
 - History and remark indexes: `grievance`, plus `{ grievance, createdAt }` for chronological retrieval.
 - Attachment indexes: `grievance`, plus `{ grievance, purpose }`.
 - Action report indexes: `grievance` and `departmentId`.
+- AI analysis indexes: `{ requestedBy, createdAt }` and `{ grievanceId, createdAt }`.
 
 Mongoose creates indexes from schema declarations. Application behavior and authorization must still validate references and access; an ObjectId reference alone does not ensure the referenced document exists or that the current user may access it.

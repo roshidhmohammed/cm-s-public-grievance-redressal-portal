@@ -132,6 +132,9 @@ The `officerId` is optional. A successful create response contains `data.departm
 | `GET /api/grievances/:id` | Signed in; owner, CMO, or assigned department | Path: `id` is a grievance ObjectId. |
 | `POST /api/grievances/:id/escalate` | CMO | Path: `id` is a grievance ObjectId. No body. Closed grievances cannot be escalated. |
 | `PATCH /api/grievances/:id/review` | CMO | Path: `id` is a grievance ObjectId. JSON: `decision` must be `"resolve"` and `resolution` must be 3–5,000 characters. |
+| `POST /api/ai-grievance/analyze` | Citizen | JSON: `district` and `description` (20–5,000 characters). Returns advisory summary, department/category/priority suggestions, confidence, reasoning, and possible duplicate complaints. Requires `GOOGLE_GEMINI_API_KEY`. |
+| `PATCH /api/ai-grievance/:analysisId/review` | Citizen analysis owner | Path: `analysisId` is an AI analysis ObjectId. JSON decision: `ACCEPTED`, `MODIFIED`, or `REJECTED`; `MODIFIED` also requires a valid department, AI category, and priority. |
+| `GET /api/ai-grievance/grievances/:grievanceId` | CMO | Path: `grievanceId` is a grievance ObjectId. Returns the latest matching AI analysis, or `data.analysis: null` if none is available. |
 
 Allowed grievance districts are the 14 Kerala districts. Allowed categories are `Infrastructure`, `Health`, `Education`, `Public Services`, `Water & Sanitation`, `Transport`, and `Other`. Status values are `SUBMITTED`, `UNDER_REVIEW`, `IN_PROGRESS`, `RESOLVED`, and `REJECTED`; priorities are `Low`, `Medium`, and `High`.
 
@@ -300,6 +303,51 @@ Create request:
 ```
 
 Creation returns `data.enquiryId`. Listing returns `data.enquiries`, `data.page`, `data.limit`, and `data.total`. Updating returns `data.enquiry`.
+
+### AI grievance assistant
+
+The citizen can request advisory analysis while drafting a grievance. This endpoint requires `GOOGLE_GEMINI_API_KEY` on the backend. The AI does not submit a grievance or make an administrative decision.
+
+```json
+{
+  "district": "Ernakulam",
+  "description": "A damaged road near the local school has caused difficulty for residents and requires inspection."
+}
+```
+
+`POST /api/ai-grievance/analyze` returns an `analysisId`, a concise `summary`, `suggestedDepartment`, `suggestedCategory`, `suggestedPriority`, `confidence` (0–1), `reasoning`, and duplicate warning/candidate fields. The citizen may record a review decision with `PATCH /api/ai-grievance/:analysisId/review`.
+
+The CMO-only endpoint `GET /api/ai-grievance/grievances/:grievanceId` returns a `data.analysis` object containing those recommendations and the review decision. If no analysis matches the grievance's citizen, district, and trimmed-description hash, the response is successful with `data.analysis: null`.
+
+```json
+{
+  "success": true,
+  "data": {
+    "analysis": {
+      "analysisId": "6650a1b2c3d4e5f678901234",
+      "summary": "Residents report a damaged road near a school.",
+      "suggestedDepartment": {
+        "id": "6650a1b2c3d4e5f678901240",
+        "name": "Public Works Department",
+        "code": "public-works"
+      },
+      "suggestedCategory": "ROADS",
+      "suggestedPriority": "MEDIUM",
+      "confidence": 0.84,
+      "reasoning": "The report concerns road damage and community access.",
+      "duplicateConcern": false,
+      "duplicateReason": "",
+      "duplicateCandidates": [],
+      "reviewDecision": "ACCEPTED",
+      "reviewedValues": null,
+      "modelProvider": "GOOGLE_GEMINI",
+      "modelName": "gemini-2.0-flash",
+      "generatedAt": "2026-05-20T10:30:00.000Z",
+      "reviewedAt": "2026-05-20T10:32:00.000Z"
+    }
+  }
+}
+```
 
 ## Grievance workflow at a glance
 

@@ -16,6 +16,8 @@ import actionTakenReportRoutes from './modules/action-taken-reports/action-taken
 import grievanceRemarkRoutes from './modules/grievance-remarks/grievance-remark.routes.js';
 import healthRoutes from './modules/health/health.routes.js';
 import requireDatabase from './middlewares/require-database.js';
+import aiAnalysisRoutes from
+  "./modules/ai-analysis/ai-analysis.routes.js";
 
 const app = express();
 
@@ -45,6 +47,10 @@ app.use('/api/department-assignments', departmentAssignmentRoutes);
 app.use('/api/attachments', attachmentRoutes);
 app.use('/api/action-taken-reports', actionTakenReportRoutes);
 app.use('/api/grievance-remarks', grievanceRemarkRoutes);
+app.use(
+  "/api/ai-grievance",
+  aiAnalysisRoutes,
+);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });

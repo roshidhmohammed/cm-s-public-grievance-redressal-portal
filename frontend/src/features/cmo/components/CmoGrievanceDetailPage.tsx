@@ -14,7 +14,10 @@ import {
   type AssignmentHistoryEntry,
 } from '../../grievances/grievance.service'
 import type { Grievance } from '../../grievances/grievance.types'
-import { getDepartments, getDepartmentOfficers, type Department, type DepartmentOfficer } from '../../department/services/department-api.service'
+import { getDepartments, getDepartmentOfficers } from '../../department/services/department-api.service'
+import type { Department, DepartmentOfficer } from '../../department/types/department.types'
+import { getAIAnalysisForGrievance } from '../services/cmo-ai-grievance.service'
+import type { CmoAIGrievanceAnalysis } from '../types/ai-grievance.types'
 import { getApiErrorMessage } from '../../../lib/axios'
 import { Button } from '../../../shared/components/Button'
 import { CmoLayout } from '../../../shared/components/cmo/CmoLayout'
@@ -34,6 +37,12 @@ export default function CmoGrievanceDetailPage() {
   const [departments, setDepartments] = useState<Department[]>([])
   const [officers, setOfficers] = useState<DepartmentOfficer[]>([])
   const [assignmentHistory, setAssignmentHistory] = useState<AssignmentHistoryEntry[]>([])
+  const [aiAnalysisState, setAIAnalysisState] = useState<{
+    grievanceId: string
+    analysis: CmoAIGrievanceAnalysis | null
+    error: string
+    isLoading: boolean
+  } | null>(null)
   const [departmentId, setDepartmentId] = useState('')
   const [officerId, setOfficerId] = useState('')
   const [priority, setPriority] = useState<'Low' | 'Medium' | 'High'>('Medium')
@@ -43,6 +52,11 @@ export default function CmoGrievanceDetailPage() {
   const [supplementalFiles, setSupplementalFiles] = useState<FileList | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const aiAnalysis = aiAnalysisState?.grievanceId === grievanceId ? aiAnalysisState?.analysis ?? null : null
+  const aiAnalysisError = aiAnalysisState?.grievanceId === grievanceId ? aiAnalysisState?.error ?? '' : ''
+  const isLoadingAIAnalysis = Boolean(grievanceId) && (
+    aiAnalysisState?.grievanceId !== grievanceId || aiAnalysisState?.isLoading === true
+  )
 
   const refresh = async () => {
     if (!grievanceId) return
@@ -67,6 +81,30 @@ export default function CmoGrievanceDetailPage() {
       })
       .catch((error: unknown) => toast.error(getApiErrorMessage(error, 'Unable to load grievance details.')))
       .finally(() => setIsLoading(false))
+  }, [grievanceId])
+
+  useEffect(() => {
+    if (!grievanceId) return
+
+    let active = true
+    getAIAnalysisForGrievance(grievanceId)
+      .then((analysis) => {
+        if (active) setAIAnalysisState({ grievanceId, analysis, error: '', isLoading: false })
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setAIAnalysisState({
+            grievanceId,
+            analysis: null,
+            error: getApiErrorMessage(error, 'Unable to load AI recommendations.'),
+            isLoading: false,
+          })
+        }
+      })
+
+    return () => {
+      active = false
+    }
   }, [grievanceId])
 
   useEffect(() => {
@@ -158,6 +196,9 @@ export default function CmoGrievanceDetailPage() {
 
   const isClosed = ['RESOLVED', 'REJECTED'].includes(grievance.status)
   const citizen = typeof grievance.citizen === 'object' ? grievance.citizen?.fullName : undefined
+  const reviewedDepartment = departments.find(
+    (department) => department._id === aiAnalysis?.reviewedValues?.departmentId,
+  )
 
   return (
     <CmoLayout>
@@ -165,7 +206,7 @@ export default function CmoGrievanceDetailPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-700">Grievance details</p>
         <h1 className="mt-2 text-3xl font-black text-slate-900">{grievance.referenceNumber}</h1>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="mt-8 grid gap-6 lg:grid-cols-1">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="space-y-3 text-sm text-slate-700">
               <p><span className="font-semibold">Citizen:</span> {citizen ?? 'Citizen'}</p>
@@ -209,7 +250,64 @@ export default function CmoGrievanceDetailPage() {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+            <section className="rounded-3xl border border-indigo-200 bg-indigo-50/60 p-6 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-slate-900">AI grievance analysis</h2>
+                {aiAnalysis ? (
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+                    {aiAnalysis.reviewDecision}
+                  </span>
+                ) : null}
+              </div>
+
+              {isLoadingAIAnalysis ? (
+                <p className="mt-4 text-sm text-slate-600">Checking for an AI analysis…</p>
+              ) : aiAnalysisError ? (
+                <p role="alert" className="mt-4 text-sm text-red-700">{aiAnalysisError}</p>
+              ) : aiAnalysis ? (
+                <div className="mt-4 space-y-3 text-sm text-slate-700">
+                  <p><span className="font-semibold">Summary:</span> {aiAnalysis.summary}</p>
+                  <p><span className="font-semibold">Suggested department:</span> {aiAnalysis.suggestedDepartment.name}</p>
+                  <p><span className="font-semibold">Suggested category:</span> {aiAnalysis.suggestedCategory.replaceAll('_', ' ')}</p>
+                  <p><span className="font-semibold">Suggested priority:</span> {aiAnalysis.suggestedPriority}</p>
+                  <p><span className="font-semibold">Confidence:</span> {Math.round(aiAnalysis.confidence * 100)}%</p>
+                  <p><span className="font-semibold">Reasoning:</span> {aiAnalysis.reasoning}</p>
+
+                  {aiAnalysis.reviewedValues ? (
+                    <div className="rounded-xl border border-emerald-200 bg-white p-3">
+                      <p className="font-semibold text-slate-900">Values recorded during review</p>
+                      <p className="mt-1">Category: {aiAnalysis.reviewedValues.category?.replaceAll('_', ' ') || 'Not changed'}</p>
+                      <p>Priority: {aiAnalysis.reviewedValues.priority || 'Not changed'}</p>
+                      <p>Department: {reviewedDepartment?.name || aiAnalysis.reviewedValues.departmentId || 'Not changed'}</p>
+                    </div>
+                  ) : null}
+
+                  {aiAnalysis.duplicateConcern ? (
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-amber-950">
+                      <p className="font-semibold">Potential duplicate concern</p>
+                      {aiAnalysis.duplicateReason ? <p className="mt-1">{aiAnalysis.duplicateReason}</p> : null}
+                      {aiAnalysis.duplicateCandidates.length ? (
+                        <ul className="mt-2 list-inside list-disc">
+                          {aiAnalysis.duplicateCandidates.map((candidate) => (
+                            <li key={`${candidate.grievanceId ?? candidate.referenceNumber}-${candidate.referenceNumber}`}>
+                              {candidate.referenceNumber}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  <p className="border-t border-indigo-200 pt-3 text-xs text-slate-600">
+                    Advisory output from {aiAnalysis.modelProvider} ({aiAnalysis.modelName}), generated {new Date(aiAnalysis.generatedAt).toLocaleString()}. Verify the original grievance and supporting evidence before making an administrative decision.
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-slate-600">No matching AI analysis is available for this grievance.</p>
+              )}
+            </section>
+
             {!isClosed ? (
               <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-bold text-slate-900">Assign department</h2>
@@ -286,12 +384,12 @@ export default function CmoGrievanceDetailPage() {
               </section>
             ) : null}
 
-            {!isClosed ? (
+            {/* {!isClosed ? (
               <Button type="button" variant="secondary" disabled={isSaving} onClick={() => void runAction(
                 () => escalateGrievance(grievance.id),
                 'Grievance escalated.',
               )}>Escalate grievance</Button>
-            ) : null}
+            ) : null} */}
           </div>
         </div>
 
