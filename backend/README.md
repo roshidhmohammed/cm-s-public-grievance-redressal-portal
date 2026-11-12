@@ -8,7 +8,7 @@ Copy `.env.example` to `.env`, configure MongoDB and a unique JWT secret of at l
 
 After deploying the split grievance schema to a database that contains existing records, back up the database and run `npm run migrate:grievance-relations` once to move embedded histories, assignments, attachments, and action reports into their dedicated collections.
 
-Access tokens are HttpOnly cookies named `citizenAccessToken`, `cmoAccessToken`, and `departmentAccessToken` for citizens, CMO users, and department officers, respectively. Each portal keeps its own session cookie; signing in or out of one portal does not affect the others. Authenticated requests from the frontend include the `X-Portal-Role` header so the API selects the matching cookie. Requests must use credentials. For a cross-site production deployment, set `COOKIE_SAME_SITE=none` and `COOKIE_SECURE=true`, and set `CLIENT_ORIGIN` to the exact frontend origin. The API checks browser request origins for state-changing requests.
+Access tokens are HttpOnly cookies named `citizenAccessToken`, `cmoAccessToken`, and `departmentAccessToken` for citizens, CMO users, and department officers, respectively. Each portal keeps its own session cookie; signing in or out of one portal does not affect the others. Authenticated requests from the frontend include the `X-Portal-Role` header so the API selects the matching cookie. Requests must use credentials. For a cross-site production deployment, set `COOKIE_SAME_SITE=none` and `COOKIE_SECURE=true`, and set `CLIENT_ORIGIN` to the exact frontend origin. CORS is applied globally by the Express app to control browser access.
 
 Attachments are stored locally under `uploads/`, limited to 10 MB per file and five files per submission/report. They are only downloadable through an authenticated grievance attachment endpoint. Use persistent private storage for a multi-instance/production deployment.
 
@@ -20,7 +20,9 @@ Request bodies, query filters, route parameters, and uploaded-file lists are val
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| GET | `/health` | Public | Health check |
+| GET | `/health` or `/api/health` | Public | Liveness check |
+| GET | `/health/live` or `/api/health/live` | Public | Liveness check |
+| GET | `/health/ready` or `/api/health/ready` | Public | Readiness check, including MongoDB connection state |
 | POST | `/api/auth/register` | Public | Register a citizen |
 | POST | `/api/auth/login` | Public | Login and set access cookie |
 | POST | `/api/auth/logout` | Authenticated | Clear the selected portal's access cookie |

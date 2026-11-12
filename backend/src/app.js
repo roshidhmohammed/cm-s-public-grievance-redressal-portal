@@ -9,12 +9,12 @@ import departmentRoutes from './modules/departments/department.routes.js';
 import contactRoutes from './modules/contact-enquiries/contact.routes.js';
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import citizenFeedbackRoutes from './modules/citizen-feedback/feedback.routes.js';
-import verifyOrigin from './middlewares/verify-origin.js';
 import grievanceHistoryRoutes from './modules/grievance-history/grievance-history.routes.js';
 import departmentAssignmentRoutes from './modules/department-assignments/department-assignment.routes.js';
 import attachmentRoutes from './modules/attachments/attachment.routes.js';
 import actionTakenReportRoutes from './modules/action-taken-reports/action-taken-report.routes.js';
 import grievanceRemarkRoutes from './modules/grievance-remarks/grievance-remark.routes.js';
+import healthRoutes from './modules/health/health.routes.js';
 
 const app = express();
 
@@ -27,11 +27,8 @@ app.use(cors({
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(verifyOrigin);
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ success: true, message: 'API is running' });
-});
+app.use('/health', healthRoutes);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/grievances', grievanceRoutes);
@@ -44,6 +41,7 @@ app.use('/api/department-assignments', departmentAssignmentRoutes);
 app.use('/api/attachments', attachmentRoutes);
 app.use('/api/action-taken-reports', actionTakenReportRoutes);
 app.use('/api/grievance-remarks', grievanceRemarkRoutes);
+app.use('/api/health', healthRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
